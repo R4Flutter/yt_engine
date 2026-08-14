@@ -47,7 +47,28 @@ def load():
     gens = to_df(conn.execute(
         "SELECT id, topic, mode, duration_target, my_video_id, actual_ctr, "
         "actual_avd_pct, generated_at FROM hook_generations ORDER BY id DESC"))
-    return channels, videos, my, hooks, gens
+    try:
+        patterns = to_df(conn.execute(
+            """SELECT pattern_key, scope, kind, feature, effect_z, ci95_lo,
+                      ci95_hi, robust, channel_consistency, confidence,
+                      n_videos, n_hooks, best_niche, best_duration_sec
+               FROM learned_patterns
+               ORDER BY ABS(effect_z) DESC"""))
+    except Exception:
+        patterns = None
+    models = []
+    mdir = load_settings()["paths"]["models"]
+    mp = Path(mdir)
+    if mp.exists():
+        for meta in sorted(mp.glob("*.meta.json")):
+            d = json.loads(meta.read_text(encoding="utf-8"))
+            d["horizon"] = int(d.get("h") or d.get("horizon_s") or 0)
+            d["version"] = Path(d.get("file", meta.name)).stem.split("_v")[-1]
+            b, c = d.get("baseline_rmse"), d.get("cv_rmse")
+            d["improvement_pct"] = (round((b - c) / b * 100, 1)
+                                    if b and c is not None else 0.0)
+            models.append(d)
+    return channels, videos, my, hooks, gens, patterns, models
 
 
 def md_report_text() -> str:
@@ -55,7 +76,7 @@ def md_report_text() -> str:
     return p[-1].read_text(encoding="utf-8") if p else "(no report yet — run python -m miner.report)"
 
 
-channels, videos, my, hooks, gens = load()
+channels, videos, my, hooks, gens, patterns, models = load()
 reports_dir = ROOT / "reports"
 
 st.title("📈 VIRALFORGE — Finance YouTube Viral Intelligence")
@@ -163,6 +184,57 @@ with tab4:
                 st.caption(f"why: {', '.join(h['why_it_works'])} · risks: {', '.join(h['risks'])}")
                 if h.get("variants"):
                     st.caption(" | ".join(f"{k}s: {v}" for k, v in h["variants"].items()))
+                pev = h.get("pattern_evidence")
+                if pev and pev.get("matched"):
+                    st.caption(f"pattern evidence: {pev['label']} "
+                               f"(z {pev['effect_z']:+.2f}, {pev['confidence']}, {pev['scope']})")
+                lr = h.get("learned")
+                if lr and lr.get("z_pred") is not None:
+                    st.caption(f"learned prediction: {lr['z_pred']:+.2f} z at 10s "
+                               f"({lr['confidence']}, {lr.get('model_kind', '?')} model)")
+
+    # ---- learned intelligence (M4)
+    st.markdown("#### Learned intelligence (M4)")
+    st.markdown("Retention is modeled per horizon (3/5/10/15/30s) with channel-grouped "
+                "cross-validation. A model is kept only if it beats the corpus baseline "
+                "by ≥5%; everything else is reported honestly as a baseline prediction "
+                "with LOW confidence.")
+    if models:
+        mdf = pd.DataFrame(models)[["horizon", "kind", "version", "cv_rmse",
+                                    "baseline_rmse", "improvement_pct",
+                                    "trained_at", "n_videos"]]
+        st.dataframe(mdf.sort_values("horizon"), width="stretch", hide_index=True)
+    else:
+        st.info("No models trained yet — run `python -m miner.hooks train --build`")
+    if patterns is not None and len(patterns):
+        st.dataframe(patterns[["pattern_key", "kind", "effect_z", "ci95_lo",
+                               "ci95_hi", "confidence", "n_videos", "channel_consistency",
+                               "best_duration_sec"]], width="stretch", hide_index=True)
+    else:
+        st.info("No learned patterns yet — run `python -m miner.hooks patterns-learned`")
+
+    # ---- retention predictor
+    st.markdown("#### Retention predictor")
+    with st.form("hook_predict"):
+        pred_text = st.text_input("Hook text to score",
+                                  "Why does Lamborghini make so much money?")
+        do_pred = st.form_submit_button("Predict retention")
+    if do_pred and pred_text:
+        from miner import hook_learn
+        from miner.hook_dna import extract_dna
+        dna = extract_dna(pred_text)
+        rows = []
+        for hz in (3, 5, 10, 15, 30):
+            p = hook_learn.predict_dna(dna, hz)
+            rows.append({"horizon_s": hz, "z_pred": p.get("z_pred"),
+                         "confidence": p.get("confidence"),
+                         "model_kind": p.get("model_kind")})
+        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+        p10 = hook_learn.predict_dna(dna, 10)
+        if p10.get("contributors"):
+            st.caption("top contributors: " + ", ".join(
+                f"{c['feature']} {c['contribution_z']:+.2f}"
+                for c in p10["contributors"][:5]))
 
 with tab5:
     st.subheader("Thumbnail benchmarks by niche")

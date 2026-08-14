@@ -5,8 +5,11 @@ One CLI, composable commands, backwards compatible (no args = old `mine`):
     python -m miner.hooks mine                      # Hook DNA for all transcripts
     python -m miner.hooks analyze                   # retention intelligence (heatmap)
     python -m miner.hooks build-library             # join DNA+timing+retention -> hook_library
-    python -m miner.hooks patterns                  # what actually works (effect sizes)
-    python -m miner.hooks generate "Why Lamborghini makes so much money"
+    python -m miner.hooks patterns              # what actually works (effect sizes)
+    python -m miner.hooks patterns-learned      # LEARNED pattern library (interactions)
+    python -m miner.hooks train --build         # training set + per-horizon models
+    python -m miner.hooks predict "Why Netflix raised prices"   # learned predictions
+    python -m miner.hooks benchmark-model       # training benchmark: RAM + time
     python -m miner.hooks generate "Why Netflix raised prices" --mode retention --duration 8
     python -m miner.hooks explain 12                # why does library hook #12 work?
     python -m miner.hooks mutate "Your hook text" --style shocking
@@ -240,6 +243,17 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("analyze", help="hook-window retention intelligence (LEVEL 6)")
     sub.add_parser("build-library", help="assemble hook_library (DNA+timing+retention)")
     sub.add_parser("patterns", help="effect sizes: what actually works")
+    sub.add_parser("patterns-learned", help="LEARNED pattern library (incl. interactions)")
+    sub.add_parser("benchmark-model", help="training benchmark: RAM + time + rows/sec")
+
+    t = sub.add_parser("train", help="build training set + train per-horizon models")
+    t.add_argument("--build", action="store_true", help="(re)build hook_training_examples first")
+    t.add_argument("--replace", action="store_true", help="wipe + rebuild the training table")
+
+    p = sub.add_parser("predict", help="learned prediction with explanations for a hook")
+    p.add_argument("topic", nargs="*", help="topic, or --text for a raw hook")
+    p.add_argument("--text", default=None, help="predict a raw hook text instead of generating")
+    p.add_argument("--json", action="store_true", help="emit structured JSON")
     sub.add_parser("benchmark", help="corpus + pipeline status")
 
     g = sub.add_parser("generate", help="multi-stage hook generation")
@@ -287,6 +301,28 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "patterns":
         from miner.hook_patterns import main as _p
         return _p()
+    elif args.cmd == "patterns-learned":
+        from miner.hook_learn import discover_patterns
+        res = discover_patterns(conn, settings)
+        print(f"LEARNED PATTERNS  (scope {res['scope']}, n={res['n_videos']} videos, "
+              f"{res['n_hooks']} hooks)")
+        print(f"{'pattern':<38} {'effect':>8} {'95% CI':>18} {'ch':>5}  confidence")
+        print("-" * 88)
+        for p in res["patterns"]:
+            mark = "*" if p["robust"] else " "
+            ci = f"[{p['ci95'][0]:+.3f},{p['ci95'][1]:+.3f}]"
+            print(f"{p['pattern_key']:<38} {p['effect_z']:+8.3f}{mark} {ci:>18} "
+                  f"{p['channel_consistency']:>5}  {p['confidence']}  "
+                  f"({p['kind']}, best@{p['best_duration_sec']}s)")
+        print("\n* = 95% bootstrap CI (over videos) excludes zero · LEARNED from corpus, "
+              "not authored")
+        return 0
+    elif args.cmd == "train":
+        return _train_cli(conn, settings, args)
+    elif args.cmd == "predict":
+        return _predict_cli(conn, settings, args)
+    elif args.cmd == "benchmark-model":
+        return _benchmark_model_cli(conn, settings)
     elif args.cmd == "benchmark":
         _benchmark(conn)
     elif args.cmd == "generate":
@@ -379,6 +415,123 @@ def _record_outcome(conn, gen_id: int, my_video_id: int) -> None:
     conn.commit()
     print(f"[record-outcome] generation #{gen_id} linked to my_videos #{my_video_id} "
           f"(CTR {mv['actual_ctr']}, AVD {mv['actual_avd_pct']}%)")
+
+
+def _train_cli(conn, settings, args) -> int:
+    from miner.hook_learn import build_training_data, train
+    if args.build or args.replace:
+        n = build_training_data(conn, settings, replace=args.replace)
+        print(f"[train] built {n} training examples "
+              f"(total {conn.execute('SELECT COUNT(*) FROM hook_training_examples').fetchone()[0]})")
+    res = train(conn, settings)
+    if res.get("status") != "trained":
+        print(f"[train] {res.get('message', 'nothing to do')}")
+        return 1
+    print(f"[train] {res['n_videos']} videos · per-horizon models (channel-grouped CV):")
+    for h, r in res["results"].items():
+        print(f"  {h:>2}s  kind={r['kind']:<8} cv_rmse={r['cv_rmse']} "
+              f"baseline_rmse={r['baseline_rmse']} "
+              f"improvement={r['cv_r2_vs_baseline']:+.1%}")
+    print("  NOTE: models kept only if >=5% better than the median baseline; "
+          "predictions label their confidence honestly.")
+    return 0
+
+
+def _predict_cli(conn, settings, args) -> int:
+    from miner.hook_learn import (HORIZONS, calibrate_from_actuals,
+                                  predict_dna, predict_features)
+    from miner.hook_dna import extract_dna
+    from miner.hook_gen import generate
+    from miner.hook_retrieval import retrieve
+
+    if args.text:
+        dna = extract_dna(args.text)
+        res = {f"{h}s": predict_dna(dna, h) for h in HORIZONS}
+        _print_predictions(args.text, res, args.json)
+        return 0
+
+    rw = settings["hooks"]["retrieval"]
+    weights = {"semantic": rw["semantic_weight"], "topic": rw["topic_weight"],
+               "dna": rw["dna_weight"], "outlier": rw["outlier_weight"],
+               "retention": rw["retention_weight"]}
+    topic = " ".join(args.topic)
+    if not topic:
+        print("[predict] usage: python -m miner.hooks predict \"topic\" | --text \"hook\"")
+        return 2
+    evidence = retrieve(conn, topic, top_k=rw["top_k"], weights=weights)
+    out = generate(conn, topic, evidence=evidence, corpus=None,
+                   retrieval_weights=weights,
+                   novelty_threshold=settings["hooks"]["generation"]["novelty_threshold"],
+                   candidates=settings["hooks"]["generation"]["candidates"],
+                   final_count=settings["hooks"]["generation"]["final_count"])
+    for hook in out["hooks"][:5]:
+        dna = extract_dna(hook["text"])
+        res = {f"{hh}s": predict_dna(dna, hh) for hh in HORIZONS}
+        if args.json:
+            print(json.dumps({"hook": hook["text"], "score": hook["score"],
+                              "predictions": res}, indent=2, ensure_ascii=False))
+        else:
+            _print_predictions(hook["text"], res, args.json, rank=hook["rank"])
+    cal = calibrate_from_actuals(conn)
+    if not args.json:
+        print(f"\n[feedback] {cal.get('message', cal.get('status'))}")
+    return 0
+
+
+def _print_predictions(hook: str, res: dict, as_json: bool,
+                       rank: int | None = None) -> None:
+    if as_json:
+        print(json.dumps({"rank": rank, "hook": hook, "predictions": res},
+                         indent=2, ensure_ascii=False))
+        return
+    prefix = f"{rank}. " if rank else ""
+    print(f"\n{prefix}{hook}")
+    for h, r in res.items():
+        z = r["z_pred"]
+        zs = "n/a (no model)" if z is None else f"{z:+.2f} z"
+        print(f"  {h:<4} predicted: {zs:<14} confidence: {r['confidence']}")
+        for c in r["contributors"][:3]:
+            if "contribution_z" in c:
+                print(f"       {c['contribution_z']:+.2f}  {c['label']}")
+            else:
+                print(f"       imp {c['importance']:.3f}  {c['label']}")
+
+
+def _benchmark_model_cli(conn, settings) -> int:
+    import time
+    import tracemalloc
+    from miner.hook_learn import build_training_data, train
+
+    n_lib = conn.execute("SELECT COUNT(*) FROM hook_library").fetchone()[0]
+    n_tr = conn.execute("SELECT COUNT(*) FROM hook_training_examples").fetchone()[0]
+    print(f"CORPUS: {n_lib} library hooks · {n_tr} training examples")
+
+    t0 = time.perf_counter()
+    tracemalloc.start()
+    n = build_training_data(conn, settings, replace=True)
+    t_build = time.perf_counter() - t0
+    _, peak = tracemalloc.get_traced_memory()
+    print(f"BUILD: {n} rows in {t_build:.2f}s · peak {peak / 1e6:.1f} MB · "
+          f"{n / t_build:.0f} rows/s")
+
+    t0 = time.perf_counter()
+    res = train(conn, settings)
+    t_train = time.perf_counter() - t0
+    _, peak2 = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    print(f"TRAIN: {t_train:.2f}s · peak {peak2 / 1e6:.1f} MB (target < 3 GB)")
+    if res.get("status") != "trained":
+        print(f"  {res.get('message')}")
+        return 0
+    for h, r in res["results"].items():
+        print(f"  {h:>2}s  {r['kind']:<8} cv_rmse {r['cv_rmse']} "
+              f"baseline {r['baseline_rmse']} improvement {r['cv_r2_vs_baseline']:+.1%}")
+    import os
+    d = resolve_path(load_settings()["paths"]["models"])
+    if d.exists():
+        for p in sorted(d.glob("hook_*s_v*.joblib")):
+            print(f"  model: {p.name} ({os.path.getsize(p) / 1024:.0f} KB)")
+    return 0
 
 
 def _benchmark(conn) -> None:

@@ -251,6 +251,42 @@ Next: reweight HookScore from observed performance once 10+ generations have
 actuals (`feedback/calibrate.py` extension), deep-crawl to grow the library
 beyond 46 hooks, LLM critique pass on Claude key.
 
+## 6b. Hook Intelligence System (M4, built)
+
+The engine learns from the corpus instead of trusting priors. Everything is
+honest by construction: with 36 labeled hooks, the models do NOT beat the
+baseline, and the system says so (LOW confidence everywhere).
+
+```bash
+python -X utf8 -m miner.hooks train --build        # materialize training set + fit per-horizon models
+python -X utf8 -m miner.hooks patterns-learned     # LEARNED patterns (singles + 15 interactions) -> reports/
+python -X utf8 -m miner.hooks predict "topic"      # generated hooks + per-horizon retention predictions
+python -X utf8 -m miner.hooks benchmark-model      # RAM/time/rows-per-sec measurement
+python -X utf8 -m miner.hooks generate "..."       # now ranks with learned dims when real models exist
+```
+
+- Per-horizon retention models (3/5/10/15/30 s) — Ridge + HistGradientBoosting,
+  kept only if channel-grouped CV RMSE beats the baseline median by ≥5%.
+  At n=36 every horizon stores `kind=baseline`; predictions = corpus median,
+  honest confidence LOW.
+- Validation: GroupKFold by channel (no channel leaks across folds); patterns
+  bootstrapped over videos; CIs over the video bootstrap.
+- Interactions: 15 curated combos (e.g. `contradiction + number_before_5s`)
+  plus 16 single binaries, scope GLOBAL, each with `best_duration_sec`.
+- Pattern evidence feeds generation via the `pattern_evidence` dimension only
+  when a pattern matches and its CI excludes zero is NOT required — matched
+  evidence enters the score, labeled by confidence.
+- Model versioning: `data/models/hook_{h}s_vNNN.joblib` + `.meta.json`,
+  never overwritten; `predict_dna` returns z + confidence + contributors.
+- Schema: `hook_training_examples` (per-hook feature row + 5 targets),
+  `learned_patterns`. Tests: `pytest tests/` (105 tests incl. learning stack).
+- Dashboard **Hooks** tab: learned intelligence (model table, pattern library,
+  retention predictor).
+
+Next (corpus-driven): deep-crawl to ≥150 labeled hooks so the gate opens and
+real models replace baselines; wire `feedback/calibrate.py` into
+`calibrate_from_actuals` once 5+ generations have actuals.
+
 ---
 
 ## 7. Immediate next actions

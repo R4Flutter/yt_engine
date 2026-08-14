@@ -172,3 +172,63 @@ CREATE TABLE IF NOT EXISTS hook_generations (
   actual_avd_pct REAL,
   actual_views_72h INTEGER
 );
+-- ---------------------------------------------------------------------------
+-- hook_training_examples: the M4 learning set (miner/hook_learn.py).
+-- One row per hook with retention. Every feature is derived deterministically
+-- from hook_library + hook_dna_json. Targets are within-video z-scores at the
+-- same horizons the generator optimizes. Built by `python -m miner.hooks train
+-- --build` and consumed WITHOUT pandas — features are streamed from this table.
+CREATE TABLE IF NOT EXISTS hook_training_examples (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  video_id      TEXT REFERENCES videos(video_id),
+  channel_id    TEXT,
+  channel       TEXT,
+  niche_tag     TEXT,
+  hook_text     TEXT,
+  -- numeric features
+  word_count    INTEGER, wpm REAL, hook_duration REAL, outlier_score REAL,
+  first_number_sec REAL, first_entity_sec REAL, first_stakes_sec REAL,
+  first_curiosity_sec REAL, promise_sec REAL,
+  specific_number_count INTEGER, entity_count INTEGER, company_count INTEGER,
+  -- categorical features (one-hot encoded at train time)
+  opening_device TEXT, curiosity_mechanism TEXT, emotional_mechanism TEXT,
+  stakes_type TEXT, promise_type TEXT,
+  -- binary features
+  open_loop INTEGER, has_question INTEGER, concrete_outcome INTEGER,
+  has_number INTEGER, has_dollar INTEGER, has_percent INTEGER, has_date INTEGER,
+  number_before_5s INTEGER, entity_before_5s INTEGER, stakes_before_5s INTEGER,
+  curiosity_before_5s INTEGER, promise_before_10s INTEGER,
+  struct_state INTEGER, struct_contradiction INTEGER, struct_reversal INTEGER,
+  struct_question INTEGER, struct_stakes INTEGER, struct_shock INTEGER,
+  struct_claim INTEGER, struct_problem INTEGER, struct_consequence INTEGER,
+  struct_promise INTEGER, struct_mystery INTEGER, struct_unexpected INTEGER,
+  struct_open_loop INTEGER, struct_statement INTEGER,
+  -- targets (within-video z, from hook_library retention_*s)
+  target_3s REAL, target_5s REAL, target_10s REAL, target_15s REAL, target_30s REAL,
+  built_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_training_video ON hook_training_examples(video_id);
+CREATE INDEX IF NOT EXISTS idx_training_channel ON hook_training_examples(channel_id);
+-- ---------------------------------------------------------------------------
+-- learned_patterns: patterns discovered from the corpus (miner/hook_learn.py),
+-- NOT manually authored. Manual priors live in PATTERNS (hook_gen.py) and are
+-- clearly marked "prior"; rows here are marked LEARNED. Effect = mean retention
+-- z of hooks with the feature(s) minus the complement, bootstrapped over videos.
+CREATE TABLE IF NOT EXISTS learned_patterns (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  pattern_key   TEXT,             -- human label, e.g. "contradiction + number_before_5s"
+  scope         TEXT,             -- GLOBAL / FINANCE / BUSINESS / USER_CHANNEL (hierarchy level)
+  feature       TEXT,             -- single feature or combo id
+  kind          TEXT,             -- single | interaction
+  n_videos      INTEGER,
+  n_hooks       INTEGER,
+  effect_z      REAL,
+  ci95_lo       REAL, ci95_hi REAL,
+  robust        INTEGER,
+  channel_consistency TEXT,
+  confidence    TEXT,             -- INSUFFICIENT DATA / LOW / MEDIUM / HIGH
+  best_niche    TEXT,
+  best_duration_sec TEXT,
+  discovered_at TEXT,
+  UNIQUE (pattern_key, scope)
+);

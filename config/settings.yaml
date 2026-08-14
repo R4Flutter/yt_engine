@@ -96,6 +96,8 @@ hooks:                           # miner/hooks.py — hook intelligence engine
     open_loop: 15
     promise: 5
     pacing: 5
+    learned: 10              # M4: learned model prediction (only if models exist)
+    pattern_evidence: 10     # M4: LEARNED pattern effect (only if patterns exist)
   facts:
     # The engine never invents figures/dates/names. Anything numeric must
     # trace to a user fact or the topic string; else it is tagged

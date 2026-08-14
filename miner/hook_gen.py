@@ -475,6 +475,73 @@ STRUCT_TO_FAMILY = {
     "PROMISE": 6, "INVESTIGATION": 6,
 }
 
+# duration target -> learned model horizon (models exist at 3/5/10/15/30)
+_HORIZON_MAP = {3: 3, 5: 5, 8: 10, 12: 10, 15: 15, 20: 15, 30: 30}
+
+
+def _map_horizon(duration_target: int) -> int:
+    return _HORIZON_MAP.get(int(duration_target), 10)
+
+
+def _learned_dim(z: float | None) -> float | None:
+    """Retention z -> 0..100 dimension for the weighted score."""
+    if z is None:
+        return None
+    return round(min(100.0, max(0.0, 50.0 + 15.0 * z)), 1)
+
+
+def _apply_learned(scored: list[dict], conn, w: dict,
+                   horizon: int) -> tuple[bool, bool]:
+    """STAGE D2: attach learned model predictions + LEARNED pattern evidence
+    to every candidate and fold them into the score. Both are optional: the
+    pipeline is identical when no models/patterns exist.
+
+    Returns (models_influenced, patterns_influenced) — True ONLY when the
+    learned dimension actually entered at least one candidate's score. A
+    stored baseline model (no real model) does not count as influence.
+    """
+    from miner import hook_learn
+    model_pkg = hook_learn.latest_model(horizon)
+    try:
+        has_patterns = bool(conn.execute(
+            "SELECT 1 FROM learned_patterns WHERE scope='GLOBAL' LIMIT 1").fetchone())
+    except Exception:
+        has_patterns = False
+    learned_w = w.get("learned")
+    pattern_w = w.get("pattern_evidence")
+    models_influenced = False
+    patterns_influenced = False
+
+    for s in scored:
+        try:
+            if model_pkg is not None and learned_w:
+                pred = hook_learn.predict_dna(s["dna"], horizon)
+                z = pred.get("z_pred")
+                dim = _learned_dim(z) if pred.get("model_kind") != "baseline" else None
+                if dim is not None and "learned" not in s["dims"]:
+                    s["dims"]["learned"] = dim
+                    models_influenced = True
+                s["learned"] = pred
+            if has_patterns and pattern_w:
+                pev = hook_learn.pattern_evidence(conn, s["dna"], horizon)
+                if pev.get("matched"):
+                    s["dims"]["pattern_evidence"] = _learned_dim(pev["effect_z"])
+                    patterns_influenced = True
+                s["pattern_evidence"] = pev
+        except Exception:
+            continue
+    return models_influenced, patterns_influenced
+
+
+def _final_score(s: dict, w: dict) -> float:
+    """Score over the dims that are present, dividing by their weights only —
+    absent dims (no model yet) must not dilute the score."""
+    present = {k: w[k] for k in s["dims"] if k in w and w.get(k)}
+    if not present:
+        return s["score"]
+    return round(sum(s["dims"][k] * present[k] for k in present) /
+                 sum(present.values()), 1)
+
 
 def _evidence_pattern_family(ev_struct: str | None) -> int:
     """Map the strongest evidence hook's structure to a pattern family.
@@ -556,6 +623,12 @@ def generate(conn, topic: str, mode: str = "retention_optimized",
             sum(s["dims"][k] * w[k] for k in s["dims"]) / sum(w.values()), 1)
         scored.append({"text": c, "dna": dna, **s})
 
+    # --- STAGE D2: learned intelligence (optional, honest when absent)
+    models_used, patterns_used = _apply_learned(scored, conn, w,
+                                                _map_horizon(duration_target))
+    for s in scored:
+        s["score"] = _final_score(s, w)
+
     # --- STAGE E: LLM critique (optional, never blocks)
     if use_llm:
         scored = _llm_critique(scored, topic, mode, evidence)
@@ -574,6 +647,11 @@ def generate(conn, topic: str, mode: str = "retention_optimized",
                     sum(ms["dims"][k] * w[k] for k in ms["dims"]) / sum(w.values()), 1)
                 final.append({"text": m, "dna": d, **ms})
 
+    # --- STAGE F2: re-apply learned intel to mutations, re-score
+    _apply_learned(final, conn, w, _map_horizon(duration_target))
+    for s in final:
+        s["score"] = _final_score(s, w)
+
     # --- STAGE G: final ranking + evidence + multi-length + explanation
     final.sort(key=lambda x: -x["score"])
     ret_proj = _retention_projection(evidence)
@@ -582,7 +660,11 @@ def generate(conn, topic: str, mode: str = "retention_optimized",
     for i, s in enumerate(final[:final_count], 1):
         dna = s["dna"]
         fact = tag_factuality(s["text"], facts, dna.get("entities", []))
-        hooks.append({
+        variants = {
+            str(sec): fit_length(s["text"], LENGTH_TARGETS.get(sec, 20))
+            for sec in (3, 5, 8, 12, 15, 20, 30)
+        } if i <= 5 else None
+        hook = {
             "rank": i,
             "text": s["text"],
             "score": s["score"],
@@ -602,22 +684,44 @@ def generate(conn, topic: str, mode: str = "retention_optimized",
             "novelty_fallback": nov_info["fallback"],
             "verification_required": fact["verification_required"],
             "factuality": fact["label"],
-            "variants": {
-                str(sec): fit_length(s["text"], LENGTH_TARGETS.get(sec, 20))
-                for sec in (3, 5, 8, 12, 15, 20, 30)
-            } if i <= 5 else None,
+            "variants": variants,
             "why_it_works": _why_it_works(dna),
             "risks": _risks(fact, dna),
-        })
+        }
+        if models_used:
+            hook["learned_influenced_rank"] = True
+            hook["learned"] = s.get("learned")
+            if variants:
+                vpreds = {}
+                for sec, vtext in variants.items():
+                    vd = extract_dna(vtext)
+                    vpreds[sec] = _variant_prediction(vd, int(sec))
+                hook["variant_predictions"] = vpreds
+        if patterns_used and s.get("pattern_evidence", {}).get("matched"):
+            hook["pattern_evidence"] = s["pattern_evidence"]
+        hooks.append(hook)
 
     return {
         "topic": topic, "mode": mode, "duration_target": duration_target,
+        "learned_enabled": models_used, "patterns_enabled": patterns_used,
         "evidence_videos": [{"id": e["video_id"], "channel": e["channel"],
                              "text": e["hook_text"][:120],
                              "score": e["outlier_score"], "retention": e["retention_10s"]}
                             for e in evidence[:5]],
         "hooks": hooks,
     }
+
+
+def _variant_prediction(dna: dict, sec: int) -> dict:
+    """Per-length learned prediction: each length is scored by the horizon
+    model closest to it, not by truncating the 10s judgment."""
+    from miner.hook_learn import predict_dna
+    try:
+        return predict_dna(dna, _map_horizon(sec))
+    except Exception:
+        return {"horizon": _map_horizon(sec), "z_pred": None,
+                "confidence": "NO MODEL", "contributors": [],
+                "model_kind": None, "timing_features_missing": True}
 
 
 def _novelty_filter(texts: list[str], idx, evidence_sims: dict[str, list[float]],
