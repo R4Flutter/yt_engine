@@ -214,6 +214,43 @@ seeds, always verify with `--resolve-only` first and check the resolved count.
 
 **Phase order is deliberate.** Everything after NOW is starved without corpus.
 
+## 6a. Hook intelligence engine (M3, built)
+
+Live module, not roadmap. Deterministic Hook DNA + temporal beats + retention
+intelligence + weighted retrieval + multi-stage generation with a feedback loop.
+
+```bash
+# full pipeline, in order
+python -X utf8 -m miner.hooks mine            # Hook DNA -> video_features.hook_dna_json
+python -X utf8 -m miner.hooks analyze         # retention profile for each hook window
+python -X utf8 -m miner.hooks build-library   # embed + upsert into hook_library
+python -X utf8 -m miner.hooks patterns        # bootstrap effect sizes -> reports/hook_patterns.json
+# generation
+python -X utf8 -m miner.hooks generate "Why Lamborghini makes so much money" \
+    --mode money --facts "made 2.8 billion dollars in 2023" --json
+python -X utf8 -m miner.hooks explain 1       # why-it-works + risks for library hook #1
+python -X utf8 -m miner.hooks mutate "text" --style more_curious
+python -X utf8 -m miner.hooks record-outcome 2 --my-video 7   # feedback loop
+python -X utf8 -m miner.hooks benchmark       # corpus status
+```
+
+Scientific rules (mirror alignment.py): retention z-scored within video;
+pattern CIs bootstrapped over videos, grouped by channel; confidence labels
+HIGH/MEDIUM/LOW/INSUFFICIENT DATA; the generator never invents figures — every
+number must trace to a user fact (tagged FACT/INFERENCE/CREATIVE_FRAMING +
+`verification_required`). Embeddings are deterministic char-ngram TF-IDF
+(no model download; ~1 GB free RAM constraint).
+
+Schema: additive migrations in `db/__init__.py` — `hook_library`
+(unique per video_id), `hook_generations` (feedback loop), and
+`video_features.hook_dna_json`. Tests: `pytest tests/` (79 tests).
+Dashboard: `streamlit run dashboard/app.py` → **Hooks** tab (leaderboard,
+DNA explorer, patterns, live generator) + **Feedback** tab.
+
+Next: reweight HookScore from observed performance once 10+ generations have
+actuals (`feedback/calibrate.py` extension), deep-crawl to grow the library
+beyond 46 hooks, LLM critique pass on Claude key.
+
 ---
 
 ## 7. Immediate next actions

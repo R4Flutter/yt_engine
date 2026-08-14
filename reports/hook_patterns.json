@@ -1,0 +1,90 @@
+{
+  "n_videos": 39,
+  "n_hooks": 39,
+  "findings": [
+    {
+      "feature": "opening_story",
+      "sample_size_videos": 2,
+      "effect_z": 0.829,
+      "ci95": [
+        -0.596,
+        2.428
+      ],
+      "robust": false,
+      "channel_consistency": "0/9",
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "curiosity_gap_present",
+      "sample_size_videos": 3,
+      "effect_z": -1.388,
+      "ci95": [
+        -2.517,
+        0.0
+      ],
+      "robust": false,
+      "channel_consistency": "0/9",
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "open_loop",
+      "sample_size_videos": 25,
+      "effect_z": 1.325,
+      "ci95": [
+        0.045,
+        2.643
+      ],
+      "robust": true,
+      "channel_consistency": "3/9",
+      "confidence": "HIGH"
+    },
+    {
+      "feature": "stakes_money",
+      "sample_size_videos": 19,
+      "effect_z": 0.956,
+      "ci95": [
+        -0.201,
+        2.184
+      ],
+      "robust": false,
+      "channel_consistency": "3/9",
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "promise_present",
+      "sample_size_videos": 13,
+      "effect_z": -0.769,
+      "ci95": [
+        -2.201,
+        0.887
+      ],
+      "robust": false,
+      "channel_consistency": "1/9",
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "first_number_sec",
+      "correlation_z_per_unit": -0.007,
+      "sample_size_videos": 39,
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "first_entity_sec",
+      "correlation_z_per_unit": -0.389,
+      "sample_size_videos": 39,
+      "confidence": "HIGH"
+    },
+    {
+      "feature": "promise_sec",
+      "correlation_z_per_unit": -0.085,
+      "sample_size_videos": 39,
+      "confidence": "MEDIUM"
+    },
+    {
+      "feature": "word_count",
+      "correlation_z_per_unit": 0.456,
+      "sample_size_videos": 39,
+      "confidence": "HIGH"
+    }
+  ]
+}

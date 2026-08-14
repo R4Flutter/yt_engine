@@ -3,7 +3,7 @@
 Streamlit app over the SQLite DB + reports/. Read-only, local:
   streamlit run dashboard/app.py
 
-Tabs: Overview | Outliers | Patterns | Thumbnails | Scorecards | Feedback
+Tabs: Overview | Outliers | Patterns | Hooks | Thumbnails | Scorecards | Feedback
 """
 import json
 from pathlib import Path
@@ -34,7 +34,20 @@ def load():
     my = to_df(conn.execute(
         "SELECT id, file_path, score, iterations, published_video_id, actual_ctr, actual_avd_pct, actual_views_72h "
         "FROM my_videos ORDER BY id DESC"))
-    return channels, videos, my
+    hooks = to_df(conn.execute(
+        """SELECT l.id, l.hook_text, l.channel, l.niche_tag, l.outlier_score,
+                  l.archetype, l.opening_device, l.curiosity_mechanism,
+                  l.emotional_mechanism, l.stakes_type, l.promise_type,
+                  l.narrative_structure, l.retention_10s, l.early_retention,
+                  l.retention_slope, l.hook_score, l.word_count, l.factuality,
+                  v.title AS video_title
+           FROM hook_library l LEFT JOIN videos v ON v.video_id = l.video_id
+           WHERE l.hook_text IS NOT NULL
+           ORDER BY l.hook_score DESC"""))
+    gens = to_df(conn.execute(
+        "SELECT id, topic, mode, duration_target, my_video_id, actual_ctr, "
+        "actual_avd_pct, generated_at FROM hook_generations ORDER BY id DESC"))
+    return channels, videos, my, hooks, gens
 
 
 def md_report_text() -> str:
@@ -42,13 +55,14 @@ def md_report_text() -> str:
     return p[-1].read_text(encoding="utf-8") if p else "(no report yet — run python -m miner.report)"
 
 
-channels, videos, my = load()
+channels, videos, my, hooks, gens = load()
 reports_dir = ROOT / "reports"
 
 st.title("📈 VIRALFORGE — Finance YouTube Viral Intelligence")
-st.caption(f"DB: {load_settings()['paths']['db']} · channels {len(channels)} · outliers {len(videos)}")
+st.caption(f"DB: {load_settings()['paths']['db']} · channels {len(channels)} · outliers {len(videos)} · library hooks {len(hooks)}")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Overview", "Outliers", "Patterns", "Thumbnails", "Scorecards"])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+    ["Overview", "Outliers", "Patterns", "Hooks", "Thumbnails", "Scorecards", "Feedback"])
 
 with tab1:
     c1, c2, c3, c4 = st.columns(4)
@@ -76,6 +90,81 @@ with tab3:
         st.json(json.loads(b.read_text(encoding="utf-8")))
 
 with tab4:
+    st.subheader("Hook intelligence engine (M3)")
+    if not len(hooks):
+        st.info("No hooks in library yet — run `python -m miner.hooks mine && "
+                "python -m miner.hooks analyze && python -m miner.hooks build-library`")
+    else:
+        # ---- leaderboard
+        st.markdown("#### Leaderboard (highest HookScore first)")
+        cols = ["hook_text", "channel", "niche_tag", "hook_score", "outlier_score",
+                "opening_device", "curiosity_mechanism", "stakes_type",
+                "retention_10s", "early_retention", "factuality"]
+        st.dataframe(hooks[cols].head(50), width="stretch", hide_index=True)
+
+        # ---- DNA explorer
+        st.markdown("#### DNA explorer")
+        f1, f2 = st.columns(2)
+        dev = f1.multiselect("Opening device", sorted(hooks["opening_device"].dropna().unique()))
+        stk = f2.multiselect("Stakes", sorted(hooks["stakes_type"].dropna().unique()))
+        exp = hooks
+        if dev:
+            exp = exp[exp["opening_device"].isin(dev)]
+        if stk:
+            exp = exp[exp["stakes_type"].isin(stk)]
+        st.dataframe(exp[["hook_text", "channel", "opening_device",
+                          "curiosity_mechanism", "emotional_mechanism",
+                          "stakes_type", "promise_type", "narrative_structure"]],
+                     width="stretch", hide_index=True)
+
+        # ---- patterns
+        st.markdown("#### Discovered patterns (effect sizes over videos)")
+        hp = reports_dir / "hook_patterns.json"
+        if hp.exists():
+            d = json.loads(hp.read_text(encoding="utf-8"))
+            st.json(d)
+        else:
+            st.info("Run `python -m miner.hooks patterns`")
+
+    # ---- generator
+    st.markdown("#### Generator")
+    with st.form("hook_gen"):
+        g1, g2, g3, g4 = st.columns(4)
+        topic = g1.text_input("Topic", "Why Lamborghini makes so much money")
+        mode = g2.selectbox("Mode", ["retention_optimized", "curiosity", "shock",
+                                     "story", "investigation", "contrarian",
+                                     "money", "emotional", "documentary", "fast",
+                                     "authority", "mystery"])
+        dur = g3.slider("Duration target (s)", 3, 30, 8)
+        niche = g4.text_input("Niche (optional)", "finance")
+        facts = st.text_input("Facts (comma-separated, e.g. 'made 2.8 billion dollars in 2023')")
+        run = st.form_submit_button("Generate hooks")
+    if run and topic:
+        from miner.hook_gen import generate
+        out = generate(get_connection(), topic, mode=mode, duration_target=dur,
+                       facts=[f.strip() for f in facts.split(",") if f.strip()],
+                       niche=niche or None)
+        st.session_state["gen_out"] = out
+    if st.session_state.get("gen_out"):
+        gen = st.session_state["gen_out"]
+        ev = gen.get("evidence_videos") or []
+        if ev:
+            st.caption(f"evidence: {len(ev)} retrieved hooks · "
+                       f"{len({e.get('channel') for e in ev if e.get('channel')})} channels")
+        for h in gen["hooks"][:5]:
+            with st.expander(f"#{h['rank']} · score {h['score']} · {h['opening_device']} · {h['factuality']}"):
+                st.write(h["text"])
+                meta = [f"confidence: {h.get('confidence', '?')}"]
+                if h.get("retention_projection") is not None:
+                    meta.append(f"retention projection (z): {h['retention_projection']:+.2f}")
+                if h.get("novelty_fallback"):
+                    meta.append("novelty: ALL filtered → least-similar fallback")
+                st.caption(" · ".join(meta))
+                st.caption(f"why: {', '.join(h['why_it_works'])} · risks: {', '.join(h['risks'])}")
+                if h.get("variants"):
+                    st.caption(" | ".join(f"{k}s: {v}" for k, v in h["variants"].items()))
+
+with tab5:
     st.subheader("Thumbnail benchmarks by niche")
     if len(videos) and videos["thumb_contrast"].notna().any():
         st.dataframe(videos.groupby("niche_tag").agg(
@@ -88,7 +177,7 @@ with tab4:
     else:
         st.info("No thumbnail metrics yet — run `python -m miner.thumbs`")
 
-with tab5:
+with tab6:
     st.subheader("Your videos — predicted vs actual")
     if len(my):
         st.dataframe(my, width="stretch", hide_index=True)
@@ -103,3 +192,17 @@ with tab5:
     if w.exists():
         st.subheader("Recalibrated weights (M7)")
         st.json(json.loads(w.read_text(encoding="utf-8")))
+
+with tab7:
+    st.subheader("Feedback loop — generated hooks vs published outcomes")
+    if len(gens):
+        st.dataframe(gens, width="stretch", hide_index=True)
+        st.markdown("""
+Link a published video to a generation:
+`python -m miner.hooks record-outcome <gen_id> --my-video <my_video_id>`
+
+Once 10+ generations have actuals, run `python -m feedback.calibrate` to reweight
+the HookScore dimensions from observed performance instead of priors.
+""")
+    else:
+        st.info("No generations logged yet — run `python -m miner.hooks generate \"topic\"`")

@@ -70,3 +70,34 @@ runtime:
   max_workers: 4                 # NOT 12 — RAM-bound, not CPU-bound
   abort_above_memory_pct: 85
   sqlite_chunk_size: 5000
+
+hooks:                           # miner/hooks.py — hook intelligence engine
+  window_sec: 30                 # the opening we call "the hook"
+  retrieval:
+    semantic_weight: 0.30        # char-ngram TF-IDF cosine (deterministic)
+    topic_weight: 0.20           # niche match
+    dna_weight: 0.15             # Hook DNA similarity
+    outlier_weight: 0.20         # how extreme the video's outlier score is
+    retention_weight: 0.15       # within-video normalized hook retention
+    top_k: 8
+  generation:
+    candidates: 60               # STAGE A pool before filtering
+    novelty_threshold: 0.72      # cosine vs corpus — above this: REJECT
+    final_count: 12              # returned candidates (quality > quantity)
+    use_llm: false               # optional critique pass (claude provider)
+  scoring:
+    # HookScore dimensions — eventually LEARNED from published-video
+    # performance via feedback/calibrate.py, never permanently hardcoded.
+    curiosity: 20
+    specificity: 15
+    stakes: 15
+    novelty: 15
+    clarity: 10
+    open_loop: 15
+    promise: 5
+    pacing: 5
+  facts:
+    # The engine never invents figures/dates/names. Anything numeric must
+    # trace to a user fact or the topic string; else it is tagged
+    # CREATIVE_FRAMING / verification_required.
+    strict: true
