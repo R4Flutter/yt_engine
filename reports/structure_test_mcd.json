@@ -1,0 +1,75 @@
+{
+  "samples": 66,
+  "static_issues": [
+    {
+      "kind": "static_shot",
+      "start": 56.0,
+      "duration": 9.0
+    }
+  ],
+  "scenes": [
+    {
+      "label": "HOOK",
+      "start": 0,
+      "end": 5.0,
+      "duration": 5.0,
+      "mean_frame_delta": 7.5,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "GLOBAL SCALE",
+      "start": 5.0,
+      "end": 13.0,
+      "duration": 8.0,
+      "mean_frame_delta": 12.17,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "WORLD MAP",
+      "start": 13.0,
+      "end": 21.6,
+      "duration": 8.6,
+      "mean_frame_delta": 2.32,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "MONEY",
+      "start": 21.6,
+      "end": 30.6,
+      "duration": 9.0,
+      "mean_frame_delta": 6.26,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "BUSINESS MODEL",
+      "start": 30.6,
+      "end": 41.6,
+      "duration": 11.0,
+      "mean_frame_delta": 4.78,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "DATA STORY",
+      "start": 41.6,
+      "end": 53.2,
+      "duration": 11.6,
+      "mean_frame_delta": 0.76,
+      "dropoff_risk": false,
+      "risk_reason": null
+    },
+    {
+      "label": "FINALE",
+      "start": 53.2,
+      "end": 65.7,
+      "duration": 12.5,
+      "mean_frame_delta": 0.25,
+      "dropoff_risk": false,
+      "risk_reason": null
+    }
+  ]
+}

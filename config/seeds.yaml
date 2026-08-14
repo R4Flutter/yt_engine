@@ -1,0 +1,66 @@
+# VIRALFORGE seed channels — US finance / business, English.
+#
+# WARNING: harvester/api_crawl.py --once PRUNES channels that are not in this
+# file (it deletes any channel whose last_crawled is older than 2 hours after a
+# resolve pass). A handle that fails to resolve therefore drops that channel and
+# orphans its videos. After editing this file, always verify with:
+#     python -m harvester.api_crawl --resolve-only
+# and confirm the resolved count before running --once.
+#
+# niche_tag vocabulary is fixed by the existing corpus and reports/benchmarks.json:
+#   story_doc | explainer | investigation | personal_finance
+# Never introduce a new tag without re-mining benchmarks — the models are fitted
+# per tag, and a typo silently creates an empty cohort.
+
+channels:
+  # ---- story_doc: your direct format (documentary / mini-movie) ----
+  - {handle: "@MagnatesMedia",        niche_tag: story_doc}
+  - {handle: "@ColdFusion",           niche_tag: story_doc}
+  - {handle: "@business_casual",      niche_tag: story_doc}
+  # DISABLED 2026-08-13: "@companyman" resolves to a 48-subscriber channel
+  # (median 187 views), not the real Company Man. Because outlier_score is
+  # views/channel-median, that tiny median manufactured a 68.6 score for a
+  # 12,832-view video -- above a genuine 2.8M-view outlier -- and deep_crawl
+  # walks the same ordering. Find the correct handle, verify with
+  # `--resolve-only` that it reports ~2M subs, then re-enable.
+  # - {handle: "@companyman",         niche_tag: story_doc}
+  - {handle: "@ModernMBA",            niche_tag: story_doc}
+  - {handle: "@JamesJani",            niche_tag: story_doc}
+  - {handle: "@Slidebean",            niche_tag: story_doc}
+  - {handle: "@LogicallyAnswered",    niche_tag: story_doc}
+
+  # ---- explainer: economics / finance mechanics ----
+  - {handle: "@HowMoneyWorks",        niche_tag: explainer}
+  - {handle: "@EconomicsExplained",   niche_tag: explainer}
+  - {handle: "@WallStreetMillennial", niche_tag: explainer}
+  - {handle: "@PolyMatter",           niche_tag: explainer}
+  - {handle: "@MoneyMacro",           niche_tag: explainer}
+  - {handle: "@ThePlainBagel",        niche_tag: explainer}
+  - {handle: "@PatrickBoyleOnFinance", niche_tag: explainer}
+  - {handle: "@TwoCents",             niche_tag: explainer}
+  - {handle: "@humphrey",             niche_tag: explainer}
+
+  # ---- investigation: highest viral ceiling in the niche ----
+  - {handle: "@Coffeezilla",          niche_tag: investigation}
+  - {handle: "@SpencerCornelia",      niche_tag: investigation}
+
+  # ---- personal_finance: packaging masterclass, US audience ----
+  - {handle: "@GrahamStephan",        niche_tag: personal_finance}
+  - {handle: "@MinorityMindset",      niche_tag: personal_finance}
+  - {handle: "@AndreiJikh",           niche_tag: personal_finance}
+  - {handle: "@GeorgeKamel",          niche_tag: personal_finance}
+  - {handle: "@CalebHammer",          niche_tag: personal_finance}
+  - {handle: "@MarkTilbury",          niche_tag: personal_finance}
+
+# Candidates to add once verified with --resolve-only (each is a new cohort
+# member, so add them before a benchmark re-mine, not after):
+#   @Wendoverproductions  @JohnnyHarris  @NischaOfficial  @FernInvesting
+
+discovery:                       # harvester/discovery.py — 100 units per query
+  queries:
+    - "how {company} makes money"
+    - "the rise and fall of"
+    - "business documentary collapse"
+    - "financial scam explained"
+  region_code: US
+  relevance_language: en

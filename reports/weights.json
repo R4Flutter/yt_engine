@@ -1,0 +1,19 @@
+{
+  "weights": {
+    "Hook": 69,
+    "Thumbnail": 0,
+    "Title": 25,
+    "Retention engineering": 4,
+    "Technical": 2,
+    "Topic momentum": 0
+  },
+  "coefs": {
+    "Hook": 0.05779723513635791,
+    "Thumbnail": -0.00017518685406117733,
+    "Title": 0.02085824911592317,
+    "Retention engineering": 0.003604471948074762,
+    "Technical": 0.002053960710251781,
+    "Topic momentum": -0.008821842438909985
+  },
+  "n": 12
+}

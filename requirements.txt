@@ -1,0 +1,25 @@
+# VIRALFORGE dependencies — all free.
+# Tuned for 7.3 GB RAM / no CUDA. Nothing here loads a large model into memory.
+
+# --- core: harvest + corpus (Phase 0-1, install these first) ---
+google-api-python-client>=2.100    # YouTube Data API v3
+yt-dlp>=2025.1.1                   # heatmap + subs + thumbnails
+PyYAML>=6.0
+numpy>=1.26
+psutil>=5.9                        # memory guard (see corpus/db.py)
+tqdm>=4.66
+
+# --- align + models (Phase 2-3) ---
+scipy>=1.11
+scikit-learn>=1.4
+xgboost>=2.0
+spacy>=3.7                         # + python -m spacy download en_core_web_sm
+sentence-transformers>=2.5         # all-MiniLM-L6-v2, ~90 MB
+hdbscan>=0.8
+
+# --- thumbnails (Phase 3) ---
+opencv-python-headless>=4.9        # headless: no GUI deps, lighter install
+# easyocr>=1.7                     # optional, ~100 MB of models — enable if RAM allows
+
+# --- your own videos only (Phase 5) ---
+# faster-whisper>=1.0              # base.en int8 on CPU; competitors use free auto-subs

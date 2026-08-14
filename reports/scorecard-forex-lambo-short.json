@@ -1,0 +1,94 @@
+{
+  "score": 100,
+  "verdict": "PASS",
+  "gates": {
+    "overall >= 80": true,
+    "retention >= 70": true
+  },
+  "category_scores": {
+    "Retention engineering": 100,
+    "Technical": 100
+  },
+  "packaging_score": null,
+  "issues": [],
+  "checks": [
+    {
+      "category": "Hook",
+      "weight": 25,
+      "id": "HOOK_ASSUMED",
+      "ok": null,
+      "severity": "low",
+      "detail": "Voice/narration assumed present (--assume-voice); whisper hook checks skipped",
+      "fix": {
+        "type": "manual",
+        "instruction": "Mux narration, then re-run without --assume-voice to verify the hook."
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "PACING",
+      "ok": true,
+      "severity": "med",
+      "detail": "11.01 cuts/min (outlier target 10-24)",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes[*].durationInFrames",
+        "op": "scale",
+        "value": 1.54
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "STATIC_SHOT",
+      "ok": true,
+      "severity": "high",
+      "detail": "Longest static shot 7.2s; max 8s",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes",
+        "op": "add_motion",
+        "instruction": "Add camera move/b-roll to the static scene."
+      }
+    },
+    {
+      "category": "Technical",
+      "weight": 10,
+      "id": "RESOLUTION",
+      "ok": true,
+      "severity": "low",
+      "detail": "Resolution 1080x1920 (need >= 1080p)",
+      "fix": {
+        "type": "props_patch",
+        "path": "composition",
+        "op": "set",
+        "instruction": "Render at 1080p or higher."
+      }
+    },
+    {
+      "category": "Thumbnail",
+      "weight": 20,
+      "id": "THUMB_NA",
+      "ok": null,
+      "severity": "low",
+      "detail": "Thumbnail analysis not available in MVP cut",
+      "fix": {
+        "type": "manual",
+        "instruction": "Run M3 thumbnail mining or check visually: <=4 words, high contrast, strong face."
+      }
+    },
+    {
+      "category": "Topic",
+      "weight": 10,
+      "id": "TOPIC_NA",
+      "ok": null,
+      "severity": "low",
+      "detail": "Topic momentum needs hot-cluster list (M3)",
+      "fix": {
+        "type": "manual",
+        "instruction": "Check the topic against the weekly patterns report hot list."
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "duration_sec": 43.355542,
+  "fps": 30.0,
+  "width": 1080,
+  "height": 1920,
+  "bitrate_kbps": 8957,
+  "audio": true,
+  "loudness": {
+    "integrated_lufs": -18.6,
+    "true_peak": -1.4
+  },
+  "scenes": {
+    "cuts": 8,
+    "cuts_per_min": 11.09,
+    "longest_static_shot": 7.2,
+    "shot_lengths": [
+      4.1,
+      1.4,
+      3.7,
+      6.2,
+      7.0,
+      7.2,
+      7.0,
+      6.67
+    ]
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "score": 18,
+  "verdict": "FIX_REQUIRED",
+  "gates": {
+    "overall >= 80": false,
+    "hook >= 95": false,
+    "retention >= 75": false,
+    "packaging >= 75": false
+  },
+  "category_scores": {
+    "Hook": 0,
+    "Retention engineering": 0,
+    "Technical": 50,
+    "Title": 50
+  },
+  "packaging_score": 50,
+  "issues": [
+    {
+      "category": "Hook",
+      "weight": 25,
+      "id": "HOOK_PROMISE",
+      "ok": false,
+      "severity": "high",
+      "detail": "Payoff promise at 30.0s; target <= 8.0s",
+      "fix": {
+        "type": "script_rewrite",
+        "target": "hook",
+        "instruction": "State the payoff promise by 8.0s in sentence 1-2."
+      }
+    },
+    {
+      "category": "Hook",
+      "weight": 25,
+      "id": "HOOK_PACE",
+      "ok": false,
+      "severity": "med",
+      "detail": "Words/min = 0 (target >= 120)",
+      "fix": {
+        "type": "props_patch",
+        "path": "script",
+        "op": "trim",
+        "instruction": "Tighten first 30s: cut filler, raise speech pace."
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "PACING",
+      "ok": false,
+      "severity": "med",
+      "detail": "3.65 cuts/min (outlier target 8.0-24.0)",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes[*].durationInFrames",
+        "op": "scale",
+        "value": 4.38
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "STATIC_SHOT",
+      "ok": false,
+      "severity": "high",
+      "detail": "Longest static shot 55.97s; max 8.0s",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes",
+        "op": "add_motion",
+        "instruction": "Add camera move/b-roll to the static scene."
+      }
+    },
+    {
+      "category": "Technical",
+      "weight": 10,
+      "id": "LOUDNESS",
+      "ok": false,
+      "severity": "med",
+      "detail": "Integrated loudness -70.0 LUFS (target -14 +/- 1)",
+      "fix": {
+        "type": "props_patch",
+        "path": "audio",
+        "op": "normalize",
+        "instruction": "Normalize audio to -14 LUFS"
+      }
+    },
+    {
+      "category": "Title",
+      "weight": 15,
+      "id": "TITLE_NUMBER",
+      "ok": false,
+      "severity": "med",
+      "detail": "Specific number in title: False",
+      "fix": {
+        "type": "text",
+        "instruction": "Use a specific odd number ($10,427 beats $10,000)."
+      }
+    }
+  ],
+  "checks": [
+    {
+      "category": "Hook",
+      "weight": 25,
+      "id": "HOOK_PROMISE",
+      "ok": false,
+      "severity": "high",
+      "detail": "Payoff promise at 30.0s; target <= 8.0s",
+      "fix": {
+        "type": "script_rewrite",
+        "target": "hook",
+        "instruction": "State the payoff promise by 8.0s in sentence 1-2."
+      }
+    },
+    {
+      "category": "Hook",
+      "weight": 25,
+      "id": "HOOK_PACE",
+      "ok": false,
+      "severity": "med",
+      "detail": "Words/min = 0 (target >= 120)",
+      "fix": {
+        "type": "props_patch",
+        "path": "script",
+        "op": "trim",
+        "instruction": "Tighten first 30s: cut filler, raise speech pace."
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "PACING",
+      "ok": false,
+      "severity": "med",
+      "detail": "3.65 cuts/min (outlier target 8.0-24.0)",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes[*].durationInFrames",
+        "op": "scale",
+        "value": 4.38
+      }
+    },
+    {
+      "category": "Retention engineering",
+      "weight": 20,
+      "id": "STATIC_SHOT",
+      "ok": false,
+      "severity": "high",
+      "detail": "Longest static shot 55.97s; max 8.0s",
+      "fix": {
+        "type": "props_patch",
+        "path": "scenes",
+        "op": "add_motion",
+        "instruction": "Add camera move/b-roll to the static scene."
+      }
+    },
+    {
+      "category": "Technical",
+      "weight": 10,
+      "id": "LOUDNESS",
+      "ok": false,
+      "severity": "med",
+      "detail": "Integrated loudness -70.0 LUFS (target -14 +/- 1)",
+      "fix": {
+        "type": "props_patch",
+        "path": "audio",
+        "op": "normalize",
+        "instruction": "Normalize audio to -14 LUFS"
+      }
+    },
+    {
+      "category": "Technical",
+      "weight": 10,
+      "id": "RESOLUTION",
+      "ok": true,
+      "severity": "low",
+      "detail": "Resolution 1920x1080 (need >= 1080p)",
+      "fix": {
+        "type": "props_patch",
+        "path": "composition",
+        "op": "set",
+        "instruction": "Render at 1080p or higher."
+      }
+    },
+    {
+      "category": "Title",
+      "weight": 15,
+      "id": "TITLE_LEN",
+      "ok": true,
+      "severity": "med",
+      "detail": "Title 29 chars (max 60)",
+      "fix": {
+        "type": "text",
+        "instruction": "Shorten title to <= 60 chars."
+      }
+    },
+    {
+      "category": "Title",
+      "weight": 15,
+      "id": "TITLE_NUMBER",
+      "ok": false,
+      "severity": "med",
+      "detail": "Specific number in title: False",
+      "fix": {
+        "type": "text",
+        "instruction": "Use a specific odd number ($10,427 beats $10,000)."
+      }
+    },
+    {
+      "category": "Thumbnail",
+      "weight": 20,
+      "id": "THUMB_NA",
+      "ok": null,
+      "severity": "low",
+      "detail": "Thumbnail analysis not available in MVP cut",
+      "fix": {
+        "type": "manual",
+        "instruction": "Run M3 thumbnail mining or check visually: <=4 words, high contrast, strong face."
+      }
+    },
+    {
+      "category": "Topic",
+      "weight": 10,
+      "id": "TOPIC_NA",
+      "ok": null,
+      "severity": "low",
+      "detail": "Topic momentum needs hot-cluster list (M3)",
+      "fix": {
+        "type": "manual",
+        "instruction": "Check the topic against the weekly patterns report hot list."
+      }
+    }
+  ]
+}
