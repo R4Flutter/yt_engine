@@ -1,358 +1,182 @@
 {
   "scope": "GLOBAL",
-  "n_videos": 36,
-  "n_hooks": 36,
+  "n_videos": 363,
+  "n_hooks": 363,
   "patterns": [
-    {
-      "pattern_key": "open loop",
-      "feature": "open_loop",
-      "kind": "single",
-      "n_videos": 25,
-      "n_hooks": 25,
-      "effect_z": 0.785,
-      "ci95": [
-        -0.751,
-        2.017
-      ],
-      "robust": false,
-      "channel_consistency": "4/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
-    {
-      "pattern_key": "concrete outcome",
-      "feature": "concrete_outcome",
-      "kind": "single",
-      "n_videos": 5,
-      "n_hooks": 5,
-      "effect_z": -0.776,
-      "ci95": [
-        -2.296,
-        0.682
-      ],
-      "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "has number",
-      "feature": "has_number",
-      "kind": "single",
-      "n_videos": 31,
-      "n_hooks": 31,
-      "effect_z": -0.243,
-      "ci95": [
-        -2.41,
-        1.658
-      ],
-      "robust": false,
-      "channel_consistency": "3/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
-    {
-      "pattern_key": "has dollar",
-      "feature": "has_dollar",
-      "kind": "single",
-      "n_videos": 3,
-      "n_hooks": 3,
-      "effect_z": 0.107,
-      "ci95": [
-        -2.08,
-        2.486
-      ],
-      "robust": false,
-      "channel_consistency": "0/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
-    {
-      "pattern_key": "has percent",
-      "feature": "has_percent",
-      "kind": "single",
-      "n_videos": 5,
-      "n_hooks": 5,
-      "effect_z": -1.687,
-      "ci95": [
-        -2.809,
-        0.0
-      ],
-      "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
     {
       "pattern_key": "number before 5s",
       "feature": "number_before_5s",
       "kind": "single",
-      "n_videos": 17,
-      "n_hooks": 17,
-      "effect_z": -0.997,
+      "n_videos": 206,
+      "n_hooks": 206,
+      "effect_z": -0.516,
       "ci95": [
-        -2.288,
-        0.175
+        -0.866,
+        -0.205
       ],
-      "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
+      "robust": true,
+      "channel_consistency": "14/19",
+      "confidence": "HIGH",
+      "best_duration_sec": "5"
     },
     {
       "pattern_key": "entity before 5s",
       "feature": "entity_before_5s",
       "kind": "single",
-      "n_videos": 23,
-      "n_hooks": 23,
-      "effect_z": 0.043,
+      "n_videos": 196,
+      "n_hooks": 196,
+      "effect_z": 0.239,
       "ci95": [
-        -1.209,
-        1.266
+        -0.126,
+        0.565
       ],
       "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "30"
+      "channel_consistency": "11/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "10"
     },
     {
       "pattern_key": "stakes before 5s",
       "feature": "stakes_before_5s",
       "kind": "single",
-      "n_videos": 13,
-      "n_hooks": 13,
-      "effect_z": 0.42,
+      "n_videos": 150,
+      "n_hooks": 150,
+      "effect_z": -0.004,
       "ci95": [
-        -0.83,
-        1.584
+        -0.38,
+        0.31
       ],
       "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
+      "channel_consistency": "10/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "30"
     },
     {
       "pattern_key": "curiosity before 5s",
       "feature": "curiosity_before_5s",
       "kind": "single",
-      "n_videos": 12,
-      "n_hooks": 12,
-      "effect_z": 0.714,
+      "n_videos": 86,
+      "n_hooks": 86,
+      "effect_z": 0.05,
       "ci95": [
-        -0.617,
-        2.103
+        -0.378,
+        0.508
       ],
       "robust": false,
-      "channel_consistency": "3/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
+      "channel_consistency": "8/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "30"
     },
     {
       "pattern_key": "promise before 10s",
       "feature": "promise_before_10s",
       "kind": "single",
-      "n_videos": 3,
-      "n_hooks": 3,
-      "effect_z": -1.346,
+      "n_videos": 47,
+      "n_hooks": 47,
+      "effect_z": -0.161,
       "ci95": [
-        -2.271,
-        0.0
+        -0.719,
+        0.378
       ],
       "robust": false,
-      "channel_consistency": "0/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
-    {
-      "pattern_key": "STRUCT contradiction",
-      "feature": "struct_contradiction",
-      "kind": "single",
-      "n_videos": 22,
-      "n_hooks": 22,
-      "effect_z": 1.266,
-      "ci95": [
-        -0.252,
-        2.424
-      ],
-      "robust": false,
-      "channel_consistency": "3/5",
-      "confidence": "LOW",
+      "channel_consistency": "9/19",
+      "confidence": "MEDIUM",
       "best_duration_sec": "5"
     },
     {
-      "pattern_key": "STRUCT reversal",
-      "feature": "struct_reversal",
-      "kind": "single",
-      "n_videos": 3,
-      "n_hooks": 3,
-      "effect_z": -0.723,
+      "pattern_key": "shocking_fact + stakes_money",
+      "feature": "opening_device",
+      "kind": "interaction",
+      "n_videos": 17,
+      "n_hooks": 17,
+      "effect_z": 0.846,
       "ci95": [
-        -1.5,
-        0.101
+        -0.024,
+        1.668
       ],
       "robust": false,
-      "channel_consistency": "0/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
+      "channel_consistency": "2/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "30"
     },
     {
-      "pattern_key": "STRUCT shock",
-      "feature": "struct_shock",
-      "kind": "single",
-      "n_videos": 10,
-      "n_hooks": 10,
-      "effect_z": -0.007,
-      "ci95": [
-        -1.227,
-        1.175
-      ],
-      "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "STRUCT open loop",
-      "feature": "struct_open_loop",
-      "kind": "single",
+      "pattern_key": "impossible_outcome + stakes_money",
+      "feature": "opening_device",
+      "kind": "interaction",
       "n_videos": 9,
       "n_hooks": 9,
-      "effect_z": -1.145,
+      "effect_z": -0.982,
       "ci95": [
-        -2.5,
-        0.37
+        -1.643,
+        -0.208
       ],
-      "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
+      "robust": true,
+      "channel_consistency": "4/19",
+      "confidence": "HIGH",
       "best_duration_sec": "5"
     },
     {
-      "pattern_key": "contradiction + number_before_5s",
-      "feature": "struct_contradiction+number_before_5s",
+      "pattern_key": "curiosity_gap + number_before_5s",
+      "feature": "number_before_5s+curiosity_mechanism",
       "kind": "interaction",
-      "n_videos": 11,
-      "n_hooks": 11,
-      "effect_z": 0.116,
+      "n_videos": 7,
+      "n_hooks": 7,
+      "effect_z": 0.679,
       "ci95": [
-        -1.302,
-        1.492
+        -0.155,
+        1.471
       ],
       "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
+      "channel_consistency": "2/19",
+      "confidence": "MEDIUM",
       "best_duration_sec": "5"
+    },
+    {
+      "pattern_key": "story + entity_before_5s",
+      "feature": "entity_before_5s+opening_device",
+      "kind": "interaction",
+      "n_videos": 5,
+      "n_hooks": 5,
+      "effect_z": -0.065,
+      "ci95": [
+        -1.019,
+        0.682
+      ],
+      "robust": false,
+      "channel_consistency": "3/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "30"
     },
     {
       "pattern_key": "stakes_money + promise",
       "feature": "stakes_type",
       "kind": "interaction",
-      "n_videos": 19,
-      "n_hooks": 19,
-      "effect_z": 0.539,
+      "n_videos": 218,
+      "n_hooks": 218,
+      "effect_z": 0.012,
       "ci95": [
-        -0.786,
-        1.783
+        -0.353,
+        0.377
       ],
       "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "open_loop + promise",
-      "feature": "open_loop",
-      "kind": "interaction",
-      "n_videos": 25,
-      "n_hooks": 25,
-      "effect_z": 0.785,
-      "ci95": [
-        -0.751,
-        2.017
-      ],
-      "robust": false,
-      "channel_consistency": "4/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
+      "channel_consistency": "12/19",
+      "confidence": "MEDIUM",
+      "best_duration_sec": "30"
     },
     {
       "pattern_key": "number_before_5s + stakes_money",
       "feature": "number_before_5s+stakes_type",
       "kind": "interaction",
-      "n_videos": 11,
-      "n_hooks": 11,
-      "effect_z": -0.225,
+      "n_videos": 138,
+      "n_hooks": 138,
+      "effect_z": -0.286,
       "ci95": [
-        -1.56,
-        1.178
+        -0.656,
+        0.034
       ],
       "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "contradiction + stakes_money",
-      "feature": "struct_contradiction+stakes_type",
-      "kind": "interaction",
-      "n_videos": 12,
-      "n_hooks": 12,
-      "effect_z": 0.207,
-      "ci95": [
-        -1.079,
-        1.503
-      ],
-      "robust": false,
-      "channel_consistency": "1/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "specific_number + open_loop",
-      "feature": "open_loop",
-      "kind": "interaction",
-      "n_videos": 25,
-      "n_hooks": 25,
-      "effect_z": 0.785,
-      "ci95": [
-        -0.751,
-        2.017
-      ],
-      "robust": false,
-      "channel_consistency": "4/5",
-      "confidence": "LOW",
-      "best_duration_sec": "10"
-    },
-    {
-      "pattern_key": "shock + open_loop",
-      "feature": "open_loop+struct_shock",
-      "kind": "interaction",
-      "n_videos": 5,
-      "n_hooks": 5,
-      "effect_z": 0.947,
-      "ci95": [
-        -0.323,
-        2.46
-      ],
-      "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
-      "best_duration_sec": "5"
-    },
-    {
-      "pattern_key": "stakes_money + open_loop",
-      "feature": "open_loop+stakes_type",
-      "kind": "interaction",
-      "n_videos": 13,
-      "n_hooks": 13,
-      "effect_z": 0.47,
-      "ci95": [
-        -0.707,
-        1.643
-      ],
-      "robust": false,
-      "channel_consistency": "2/5",
-      "confidence": "LOW",
+      "channel_consistency": "15/19",
+      "confidence": "MEDIUM",
       "best_duration_sec": "5"
     }
   ]

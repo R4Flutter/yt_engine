@@ -52,11 +52,15 @@ analyzer:
     retention_min: 70
     packaging_min: 75
 
-llm:
-  provider: claude
+llm:                             # miner/llm.py
+  provider: deepseek              # deepseek = OpenCode Zen gateway (free)
   claude:
     key_env: ANTHROPIC_API_KEY
     model: claude-haiku-4-5-20251001
+  deepseek:
+    key_env: OPENCODE_API_KEY
+    model: deepseek-v4-flash-free
+    base_url: https://opencode.ai/zen/v1
   ollama:
     base_url: http://localhost:11434
     model: qwen2.5:3b

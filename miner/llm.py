@@ -1,7 +1,11 @@
-"""M3 Miner — pluggable LLM classification (Ollama local or Claude API, PLAN §3).
+"""M3 Miner — pluggable LLM classification (Ollama local, Claude API or
+DeepSeek via OpenCode Zen, PLAN §3).
 
-provider: 'ollama' | 'claude' | 'off'  (config/settings.yaml -> llm.provider)
-Falls back to heuristic rules when off/unavailable so the pipeline never blocks.
+provider: 'ollama' | 'claude' | 'deepseek'  (config/settings.yaml -> llm.provider)
+
+The LLM is not optional. A failure raises instead of silently degrading to
+heuristic rules: a video classified by a regex is a video the corpus learns
+the wrong lesson from, and a silent fallback hides that the model is down.
 """
 import json
 import os
@@ -49,13 +53,14 @@ def _claude(settings, prompt: str) -> str:
     key = os.environ.get(cfg["key_env"], "")
     if not key:
         raise RuntimeError(f"{cfg['key_env']} not set")
+    headers = {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
     r = requests.post(
         "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
+        headers=headers,
         json={
             "model": cfg["model"],
             "max_tokens": 200,
@@ -67,6 +72,28 @@ def _claude(settings, prompt: str) -> str:
     return "".join(b.get("text", "") for b in r.json()["content"])
 
 
+def _deepseek(settings, prompt: str) -> str:
+    cfg = settings["llm"]["deepseek"]
+    key = os.environ.get(cfg["key_env"], "")
+    if not key:
+        raise RuntimeError(f"{cfg['key_env']} not set")
+    r = requests.post(
+        f"{cfg['base_url']}/chat/completions",
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": cfg["model"],
+            "max_tokens": 200,
+            "messages": [{"role": "user", "content": prompt}],
+        },
+        timeout=120,
+    )
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
+
+
 _availability = {"checked": False, "ok": False}
 
 
@@ -75,29 +102,28 @@ def _llm_available(settings: dict) -> bool:
         try:
             _ollama(settings, "ping")
             _availability["ok"] = True
-        except Exception:
-            _availability["ok"] = False
-            print("  [llm] ollama not running; using heuristic classification", file=sys.stderr)
+        except Exception as e:
+            raise RuntimeError(f"ollama not running (configured llm.provider): {e}") from e
         _availability["checked"] = True
     return _availability["ok"]
 
 
 def classify(prompt: str, fallback: str) -> str:
-    """Returns a clean one-line classification; heuristic fallback on failure."""
+    """Returns a clean one-line classification. Never heuristics: any failure
+    raises so the caller knows the model is down instead of learning from
+    rules dressed up as the model's opinion."""
     settings = load_settings()
     provider = settings["llm"]["provider"]
-    try:
-        if provider == "ollama":
-            if not _llm_available(settings):
-                return fallback
-            out = _ollama(settings, prompt)
-        elif provider == "claude":
-            out = _claude(settings, prompt)
-        else:
-            return fallback
-    except Exception as e:
-        print(f"  [llm] {provider} unavailable ({e}); using heuristic", file=sys.stderr)
-        return fallback
+    if provider == "ollama":
+        if not _llm_available(settings):
+            raise RuntimeError("ollama not running (configured llm.provider)")
+        out = _ollama(settings, prompt)
+    elif provider == "claude":
+        out = _claude(settings, prompt)
+    elif provider == "deepseek":
+        out = _deepseek(settings, prompt)
+    else:
+        raise RuntimeError(f"llm.provider '{provider}' is not wired — set deepseek, claude or ollama")
     return re.sub(r"^.*?[:\-]?\s*", "", out.strip()[:80]) or fallback
 
 

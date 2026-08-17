@@ -1,220 +1,220 @@
 {
-  "n_sentences": 13024,
-  "n_videos": 36,
-  "n_channels": 9,
-  "cv_r2_by_channel": -0.1267,
+  "n_sentences": 231061,
+  "n_videos": 1044,
+  "n_channels": 21,
+  "cv_r2_by_channel": 0.0094,
   "target": "heat_z residualized on position (50 bins)",
   "position_curve": [
-    1.162,
-    0.0785,
-    -0.0689,
-    -0.1061,
-    -0.1844,
-    -0.1694,
-    -0.0183,
-    -0.0728,
-    -0.0194,
-    -0.0894,
-    -0.0398,
-    -0.2107,
-    -0.2482,
-    0.0967,
-    0.0226,
-    -0.0558,
-    -0.1004,
-    -0.045,
-    0.4191,
-    0.1463,
-    0.0725,
-    0.02,
-    -0.1826,
-    -0.0872,
-    -0.1432,
-    0.0006,
-    -0.0206,
-    -0.0459,
-    -0.0211,
-    0.3589,
-    0.1403,
-    0.0361,
-    0.0332,
-    0.1042,
-    0.1499,
-    -0.1367,
-    -0.0597,
-    0.063,
-    -0.0639,
-    0.4103,
-    0.0238,
-    -0.0471,
-    0.0094,
-    -0.1468,
-    -0.0938,
-    -0.1789,
-    -0.4091,
-    -0.5189,
-    -0.6461,
-    -0.9813
+    1.1702,
+    -0.0018,
+    -0.1269,
+    -0.0543,
+    -0.0956,
+    -0.0483,
+    -0.048,
+    -0.0503,
+    -0.0068,
+    0.0803,
+    0.0872,
+    0.0217,
+    0.1546,
+    0.0819,
+    0.0526,
+    0.0417,
+    0.0291,
+    0.0451,
+    0.0515,
+    0.0552,
+    0.055,
+    0.0676,
+    0.0378,
+    0.0896,
+    0.2028,
+    0.1824,
+    0.0643,
+    0.065,
+    0.0382,
+    0.1173,
+    0.084,
+    0.0507,
+    0.0567,
+    0.0615,
+    0.0505,
+    0.0571,
+    0.0112,
+    0.0269,
+    -0.0276,
+    0.0431,
+    -0.0006,
+    -0.0448,
+    -0.0917,
+    -0.1607,
+    -0.1917,
+    -0.308,
+    -0.417,
+    -0.4944,
+    -0.6637,
+    -0.9125
   ],
-  "confidence": "low",
+  "confidence": "high",
   "coefficients": [
     {
-      "feature": "wpm",
-      "label": "delivery speed (wpm)",
-      "effect": -0.0782,
+      "feature": "has_number",
+      "label": "carries any number",
+      "effect": 0.0583,
       "ci": [
-        -0.115,
-        -0.0528
+        0.0463,
+        0.0706
       ],
       "robust": true
     },
     {
-      "feature": "number_specific",
-      "label": "specific (non-round) number",
-      "effect": 0.031,
+      "feature": "wpm",
+      "label": "delivery speed (wpm)",
+      "effect": -0.0403,
       "ci": [
-        -0.0273,
-        0.0726
+        -0.047,
+        -0.0332
       ],
-      "robust": false
+      "robust": true
     },
     {
-      "feature": "new_entity",
-      "label": "introduces a NEW entity",
-      "effect": 0.027,
+      "feature": "word_count",
+      "label": "sentence length (words)",
+      "effect": -0.0401,
       "ci": [
-        0.0046,
-        0.0504
+        -0.0473,
+        -0.0339
       ],
       "robust": true
     },
     {
       "feature": "sec_since_number",
       "label": "seconds since last number",
-      "effect": -0.0268,
+      "effect": -0.0384,
       "ci": [
-        -0.054,
-        0.0094
-      ],
-      "robust": false
-    },
-    {
-      "feature": "is_contrast",
-      "label": "contrast (but / however)",
-      "effect": 0.0215,
-      "ci": [
-        0.0061,
-        0.0372
+        -0.0479,
+        -0.0285
       ],
       "robust": true
     },
     {
-      "feature": "has_number",
-      "label": "carries any number",
-      "effect": -0.0203,
+      "feature": "new_entity",
+      "label": "introduces a NEW entity",
+      "effect": 0.0337,
       "ci": [
-        -0.0649,
-        0.0325
+        0.0281,
+        0.0396
       ],
-      "robust": false
+      "robust": true
+    },
+    {
+      "feature": "number_specific",
+      "label": "specific (non-round) number",
+      "effect": -0.0291,
+      "ci": [
+        -0.0401,
+        -0.0189
+      ],
+      "robust": true
+    },
+    {
+      "feature": "len_delta",
+      "label": "length change vs previous sentence",
+      "effect": 0.0214,
+      "ci": [
+        0.0173,
+        0.0254
+      ],
+      "robust": true
     },
     {
       "feature": "names_org",
       "label": "names a company",
-      "effect": 0.0196,
+      "effect": 0.0127,
       "ci": [
-        0.0039,
-        0.04
+        0.0079,
+        0.0173
+      ],
+      "robust": true
+    },
+    {
+      "feature": "has_percent",
+      "label": "states a percentage",
+      "effect": 0.0119,
+      "ci": [
+        0.0064,
+        0.0174
+      ],
+      "robust": true
+    },
+    {
+      "feature": "is_consequence",
+      "label": "consequence (so / therefore)",
+      "effect": -0.0103,
+      "ci": [
+        -0.0146,
+        -0.0058
       ],
       "robust": true
     },
     {
       "feature": "has_dollar",
       "label": "states a dollar amount",
-      "effect": 0.0178,
+      "effect": 0.0102,
       "ci": [
-        -0.0017,
-        0.0432
+        0.0038,
+        0.0173
       ],
-      "robust": false
-    },
-    {
-      "feature": "is_consequence",
-      "label": "consequence (so / therefore)",
-      "effect": -0.015,
-      "ci": [
-        -0.0288,
-        0.0016
-      ],
-      "robust": false
-    },
-    {
-      "feature": "has_percent",
-      "label": "states a percentage",
-      "effect": -0.0132,
-      "ci": [
-        -0.0318,
-        0.0021
-      ],
-      "robust": false
-    },
-    {
-      "feature": "len_delta",
-      "label": "length change vs previous sentence",
-      "effect": 0.0132,
-      "ci": [
-        -0.0018,
-        0.0303
-      ],
-      "robust": false
-    },
-    {
-      "feature": "abstract_subj",
-      "label": "abstract subject ('the economy')",
-      "effect": -0.0104,
-      "ci": [
-        -0.021,
-        0.0002
-      ],
-      "robust": false
-    },
-    {
-      "feature": "is_question",
-      "label": "asks a question",
-      "effect": 0.007,
-      "ci": [
-        -0.028,
-        0.0401
-      ],
-      "robust": false
-    },
-    {
-      "feature": "word_count",
-      "label": "sentence length (words)",
-      "effect": -0.0056,
-      "ci": [
-        -0.0325,
-        0.0203
-      ],
-      "robust": false
+      "robust": true
     },
     {
       "feature": "sec_since_entity",
       "label": "seconds since last new entity",
-      "effect": -0.0046,
+      "effect": -0.0078,
       "ci": [
-        -0.0185,
-        0.2736
+        -0.0202,
+        0.0031
+      ],
+      "robust": false
+    },
+    {
+      "feature": "is_contrast",
+      "label": "contrast (but / however)",
+      "effect": -0.0074,
+      "ci": [
+        -0.0111,
+        -0.0034
+      ],
+      "robust": true
+    },
+    {
+      "feature": "is_question",
+      "label": "asks a question",
+      "effect": 0.0032,
+      "ci": [
+        -0.002,
+        0.0084
       ],
       "robust": false
     },
     {
       "feature": "names_person",
       "label": "names a person",
-      "effect": -0.0042,
+      "effect": 0.0031,
       "ci": [
-        -0.0246,
-        0.0182
+        -0.0028,
+        0.0087
+      ],
+      "robust": false
+    },
+    {
+      "feature": "abstract_subj",
+      "label": "abstract subject ('the economy')",
+      "effect": -0.0014,
+      "ci": [
+        -0.0049,
+        0.0024
       ],
       "robust": false
     }

@@ -821,11 +821,10 @@ def _risks(fact: dict, dna: dict) -> list[str]:
 
 def _llm_critique(scored: list[dict], topic: str, mode: str,
                   evidence: list[dict]) -> list[dict]:
-    """Optional LLM pass. Uses miner.llm's Claude provider; degrades silently."""
-    try:
-        from miner.llm import classify
-    except Exception:
-        return scored
+    """Required LLM pass (miner.llm, deepseek provider). Not optional and not
+    degradable: silently shipping rule-based rankings is how a corpus learns
+    the wrong lesson, so an unreachable model fails the run loudly."""
+    from miner.llm import classify
     prompt = (
         "You are a YouTube hook critic. Below are candidate hooks for the "
         f"topic '{topic}' (mode: {mode}). For EACH, reply with a single line: "
@@ -835,7 +834,9 @@ def _llm_critique(scored: list[dict], topic: str, mode: str,
     )
     out = classify(prompt, fallback="")
     if not out:
-        return scored
+        raise RuntimeError(
+            "hook LLM critique returned nothing — refusing heuristic fallback"
+        )
     try:
         for line in out.splitlines():
             parts = line.split("|")

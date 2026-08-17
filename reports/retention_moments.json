@@ -1,0 +1,70 @@
+{
+  "n_sentences": 231061,
+  "features": {
+    "has_dollar": {
+      "mean": 0.035441,
+      "std": 0.184891
+    },
+    "has_number": {
+      "mean": 0.259178,
+      "std": 0.438184
+    },
+    "number_specific": {
+      "mean": 0.196121,
+      "std": 0.397061
+    },
+    "has_percent": {
+      "mean": 0.030979,
+      "std": 0.17326
+    },
+    "is_question": {
+      "mean": 0.032468,
+      "std": 0.177238
+    },
+    "is_contrast": {
+      "mean": 0.151016,
+      "std": 0.358065
+    },
+    "is_consequence": {
+      "mean": 0.156772,
+      "std": 0.363586
+    },
+    "names_person": {
+      "mean": 0.358788,
+      "std": 0.479645
+    },
+    "names_org": {
+      "mean": 0.0508,
+      "std": 0.21959
+    },
+    "new_entity": {
+      "mean": 0.166571,
+      "std": 0.372592
+    },
+    "abstract_subj": {
+      "mean": 0.004696,
+      "std": 0.068364
+    },
+    "sec_since_entity": {
+      "mean": 60.26508,
+      "std": 186.087446
+    },
+    "sec_since_number": {
+      "mean": 28.476518,
+      "std": 32.440455
+    },
+    "word_count": {
+      "mean": 16.843028,
+      "std": 10.133165
+    },
+    "wpm": {
+      "mean": 188.7212,
+      "std": 52.004804
+    },
+    "len_delta": {
+      "mean": -0.03474,
+      "std": 11.795844
+    }
+  },
+  "note": "Corpus moments (ddof=0) over sentences.heat_z IS NOT NULL \u2014 the same subset the ridge was fitted on."
+}
